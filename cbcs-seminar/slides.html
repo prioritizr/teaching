@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Systematic Conservation Planning in R</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Jeffrey Hanson" />
+    <link rel="stylesheet" href="styles.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Systematic Conservation Planning in R
+## <img src='https://github.com/prioritizr/logo/blob/master/logo.png?raw=true'></br><code>prioritizr</code>
+### Jeffrey Hanson
+### 2018/04/18
+
+---
+
+class: inverse
+# Systematic conservation planning
+* how should should we `$(manage)` different parts of `$(place)` to achieve `$(conservation)`?
+
+&lt;div align = "center"&gt;
+&lt;img src="http://parcc.web-staging.linode.unep-wcmc.org/system/comfy/cms/files/files/000/000/029/original/Figure15.jpg" height="400cm"&gt;
+&lt;/div&gt;
+
+---
+class: inverse
+# Data
+
+|  |  |
+| :---: | :---: |
+| &lt;img src="http://strimas.com/figures//ilp-field-guide_species-1.png" height="400cm"&gt; | &lt;img src="http://strimas.com/figures//ilp-field-guide_species-2.png" height="400cm"&gt; |
+
+---
+class: inverse
+# Objective
+* what are you trying to minimize or maximize?
+
+&lt;br&gt;
+&lt;br&gt;
+
+|  |  |  |
+| :---: | :---: | :---: |
+| &lt;img src="http://cdn2.bigcommerce.com/server5100/73f17/product_images/uploaded_images/low-cost-scissors-istock.jpg?t=1422293510" height="200cm"&gt; | &lt;img src="https://globalsoilbiodiversity.org/sites/default/files/GSBA-Banner2.png" height="200cm"&gt; | &lt;img src="http://i.imgur.com/KhuA4pq.jpg" height="200cm"&gt; |
+
+???
+* minimize cost
+* maximize number of features protected
+
+---
+class: inverse
+# Constraints
+* what must the solution do?
+  * capture a target amount of habitat for each species?
+  * be spatially contiguous?
+  * contain areas that are already protected?
+
+---
+class: inverse
+# Penalties
+* are there additional properties that must be traded off against the objective?
+  * reduce fragmentation (eg. _BLM_ in Marxan)
+
+---
+class: inverse
+# Decisions
+* what type of decision are you making?
+  * binary?
+  * proportion?
+  * choosing between multiple actions?
+
+---
+class: inverse
+# Challenges: "cooking" vs "canned"
+
+|  |  |  |
+| :---: | :---: | :---: |
+| &lt;img src="http://thetravelingtable.com/blog/wp-content/uploads/2013/11/bean-soup-ingredients.jpg" height="400cm"&gt; | &lt;img src="http://www.whatsinmyfood.com/wp-content/uploads/sites/12/2017/01/tomato_transparency_file_invisible.png" width="400cm" height="400cm"&gt; |
+
+???
+* each program has its own objective, constraints, penalties, decisions and cannot mix and match
+
+---
+class: inverse
+# Challenges: data wrangling
+
+&lt;div align = "center"&gt;
+&lt;img src="https://cdn.meme.am/instances/58267511.jpg" width="500cm"&gt;
+&lt;/div&gt;
+
+???
+* converting spatial data to tables
+* GIS skills
+
+---
+class: inverse
+# Challenges: optimization
+
+&lt;div align = "center"&gt;
+&lt;img src="https://conservationdecisions.files.wordpress.com/2017/01/yann.jpg"&gt;
+&lt;/div&gt;
+
+[Beyer HL, Y Dujardin, ME Watts, HP Possingham (2016). Solving conservation planning problems with integer linear programming, _Ecological Modelling_, **328**:14--22.](http://dx.doi.org/10.1016/j.ecolmodel.2016.02.005)
+
+???
+* takes a long time
+* not suitable for large data sets
+* single-threaded
+
+---
+class: inverse
+# `prioritizr`
+
+* directly works with GIS data
+* best optimization money can buy
+  * [free for academics!](https://user.gurobi.com/download/licenses/free-academic)
+* find the solution to your problem
+
+&lt;/br&gt;
+&lt;div align = "center" style="background-color: white;"&gt;
+&lt;img src="https://www.gurobi.com/documentation/7.0/quickstart_mac/logo.png" height="120cm"&gt;
+&lt;/div&gt;
+
+---
+class: inverse
+# Example
+
+
+```r
+# load package
+library(raster)
+# how to load raster data into R
+raster_data &lt;- raster("mydata.tif")
+# how to vector raster data into R
+vector_data &lt;- shapefile("mydata2.shp")
+```
+
+---
+class: inverse
+# Example
+
+
+```r
+# load package
+library(prioritizr)
+```
+
+```
+## Loading required package: raster
+```
+
+```
+## Loading required package: sp
+```
+
+```r
+# load planning unit data
+data(sim_pu_polygons)
+# show the first 20 rows in the attribute table
+head(sim_pu_polygons@data)
+```
+
+```
+##       cost locked_in locked_out
+## 1 215.8638     FALSE      FALSE
+## 2 212.7823     FALSE      FALSE
+## 3 207.4962     FALSE      FALSE
+## 4 208.9322     FALSE       TRUE
+## 5 214.0419     FALSE      FALSE
+## 6 213.7636     FALSE      FALSE
+```
+
+---
+class: inverse
+# Example
+
+
+```r
+# plot the planning units and color by acquisition cost
+spplot(sim_pu_polygons, "cost", main = "Planning unit cost",
+       xlim = c(-0.1, 1.1), ylim = c(-0.1, 1.1))
+```
+
+![](slides_files/figure-html/unnamed-chunk-3-1.png)&lt;!-- --&gt;
+
+---
+class: inverse
+# Example
+
+
+```r
+# plot the planning units and show which planning units are
+# inside protected areas. Units inside protected areas are yellow.
+spplot(sim_pu_polygons, "locked_in",
+       main = "Planning units in protected areas",
+       xlim = c(-0.1, 1.1), ylim = c(-0.1, 1.1))
+```
+
+![](slides_files/figure-html/unnamed-chunk-4-1.png)&lt;!-- --&gt;
+
+---
+class: inverse
+# Example
+
+
+```r
+# load feature data
+data(sim_features)
+# plot the distribution of suitable habitat for each feature
+plot(sim_features, nr = 1,
+     main = paste("Feature", seq_len(nlayers(sim_features))))
+```
+
+![](slides_files/figure-html/unnamed-chunk-5-1.png)&lt;!-- --&gt;
+
+---
+class: inverse
+# Example
+
+
+```r
+# create problem
+p1 &lt;- problem(sim_pu_polygons, features = sim_features, cost_name = "cost") %&gt;%
+  add_min_set_objective() %&gt;%
+  add_relative_targets(0.2) %&gt;%
+  add_binary_decisions()
+# print object
+print(p1)
+```
+
+```
+## Conservation Problem
+##   planning units: SpatialPolygonsDataFrame (90 units)
+##   cost:           min: 190.13276, max: 215.86384
+##   features:       layer.1, layer.2, layer.3, layer.4, layer.5
+##   objective:      Minimum set objective 
+##   targets:        Relative targets [targets (min: 0.2, max: 0.2)]
+##   decisions:      Binary decision 
+##   constraints:    &lt;none&gt;
+##   penalties:      &lt;none&gt;
+##   solver:         default
+```
+
+---
+class: inverse tiny
+# Example
+
+
+```r
+# solve the problem
+s1 &lt;- solve(p1)
+```
+
+```
+## Optimize a model with 5 rows, 90 columns and 450 nonzeros
+## Variable types: 0 continuous, 90 integer (90 binary)
+## Coefficient statistics:
+##   Matrix range     [2e-01, 9e-01]
+##   Objective range  [2e+02, 2e+02]
+##   Bounds range     [1e+00, 1e+00]
+##   RHS range        [6e+00, 1e+01]
+## Found heuristic solution: objective 4135.27
+## Presolve time: 0.00s
+## Presolved: 5 rows, 90 columns, 450 nonzeros
+## Variable types: 0 continuous, 90 integer (90 binary)
+## Presolved: 5 rows, 90 columns, 450 nonzeros
+## 
+## 
+## Root relaxation: objective 3.490348e+03, 17 iterations, 0.00 seconds
+## 
+##     Nodes    |    Current Node    |     Objective Bounds      |     Work
+##  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+## 
+##      0     0 3490.34813    0    4 4135.27447 3490.34813  15.6%     -    0s
+## H    0     0                    3597.0951275 3490.34813  2.97%     -    0s
+## 
+## Explored 0 nodes (17 simplex iterations) in 0.00 seconds
+## Thread count was 1 (of 4 available processors)
+## 
+## Solution count 2: 3597.1 4135.27 
+## Pool objective bound 3490.35
+## 
+## Optimal solution found (tolerance 1.00e-01)
+## Best objective 3.597095127479e+03, best bound 3.490348127696e+03, gap 2.9676%
+```
+
+---
+class: inverse
+# Example
+
+
+```r
+# plot the solution
+s1$solution &lt;- factor(s1$solution)
+spplot(s1, "solution", col.regions = c("grey90", "darkgreen"),
+       main = "Solution", xlim = c(-0.1, 1.1), ylim = c(-0.1, 1.1))
+```
+
+![](slides_files/figure-html/unnamed-chunk-8-1.png)&lt;!-- --&gt;
+
+---
+class: inverse
+# Example
+
+
+```r
+# create problem with locked in constraints added to it
+p2 &lt;- p1 %&gt;% add_locked_in_constraints("locked_in")
+# solve the problem
+s2 &lt;- solve(p2)
+# plot the solution
+s2$solution &lt;- factor(s2$solution)
+spplot(s2, "solution", col.regions = c("grey90", "darkgreen"),
+       main = "Solution", xlim = c(-0.1, 1.1), ylim = c(-0.1, 1.1))
+```
+
+![](slides_files/figure-html/unnamed-chunk-9-1.png)&lt;!-- --&gt;
+
+---
+class: inverse
+# Example
+
+
+```r
+# create problem with boundary penalties added to it
+p3 &lt;- p2 %&gt;% add_boundary_penalties(penalty = 500,
+                                    edge_factor = 0.5)
+# solve the problem
+s3 &lt;- solve(p3)
+# plot the solution
+s3$solution &lt;- factor(s3$solution)
+spplot(s3, "solution", col.regions = c("grey90", "darkgreen"),
+       main = "Solution", xlim = c(-0.1, 1.1), ylim = c(-0.1, 1.1))
+```
+
+![](slides_files/figure-html/unnamed-chunk-10-1.png)&lt;!-- --&gt;
+
+---
+class: inverse
+# Example
+
+
+```r
+# create problem with connected constraints
+p4 &lt;- p3 %&gt;% add_connected_constraints()
+# solve the problem
+s4 &lt;- solve(p4)
+# plot the solution
+s4$solution &lt;- factor(s4$solution)
+spplot(s4, "solution", col.regions = c("grey90", "darkgreen"),
+       main = "Solution", xlim = c(-0.1, 1.1), ylim = c(-0.1, 1.1))
+```
+
+![](slides_files/figure-html/unnamed-chunk-11-1.png)&lt;!-- --&gt;
+
+---
+class: inverse
+# Future work
+
+* graphical user interface (`prioritizrshiny`)
+* multiple types of actions (like MarZone)
+* find methods to optimally solve problems using freely available software
+* add more constraints, objectives, and penalties
+
+---
+class: inverse
+# Resources
+
+* Web page
+  * https://prioritizr.github.io/prioritizr/
+* Teaching resources
+  * https://github.com/prioritizr/teaching
+* Post an issue
+  * https://github.com/prioritizr/prioritizr
+* Spatial analysis in R
+  * http://www.springer.com/gp/book/9781461476177
+
+---
+class: inverse
+# Development Team
+
+|  |  |  |  |
+| :---: | :---: | :---: | :---: |
+| Jeffrey Hanson | &lt;img src="https://avatars3.githubusercontent.com/u/3610005?v=3&amp;s=460" height="120cm"&gt; | Richard Schuster | &lt;img src="https://carleton.ca/biology/wp-content/uploads/schuster-200x200.jpg" height="120cm"&gt; |
+| Matt Mackey-Strimas  | &lt;img src="http://strimas.com/img/avatar.png" height="120cm"&gt; | Matt Watts | &lt;img src="http://marxan.net/downloads/uq_marxan_web_2/Matt_Watts_photo.jpg" height="120cm"&gt; |
+| Peter Arcese | &lt;img src="https://forestry-profiles.sites.olt.ubc.ca/files/2013/07/cropped-Peter-Arcese.jpg" height="120cm"&gt; | Joe Bennett | &lt;img src="https://carleton.ca/biology/wp-content/uploads/joe-bennett-head-shot1.jpg" height="120cm"&gt; |
+| Hugh Possingham | &lt;img src="https://www.smp.uq.edu.au/sites/smp.uq.edu.au/files/5108-007%20low%20res.jpg" height="120cm"&gt; |
+
+---
+class: center, middle, inverse
+
+# You don't have time to not learn `prioritizr`
+&lt;/br&gt;
+&lt;img src='https://github.com/prioritizr/logo/blob/master/logo.png?raw=true'&gt;
+    </textarea>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('showSlide', function (slide) {setTimeout(function() {window.dispatchEvent(new Event('resize'));}, 100)});</script>
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+  }
+});
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
