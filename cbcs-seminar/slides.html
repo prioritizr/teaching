@@ -19,7 +19,7 @@ class: center, middle, inverse, title-slide
 
 class: inverse
 # Systematic conservation planning
-* how should should we `$(manage)` different parts of `$(place)` to achieve `$(conservation)`?
+* how should we `$(manage)` different parts of `$(place)` to achieve `$(conservation)`?
 
 &lt;div align = "center"&gt;
 &lt;img src="http://parcc.web-staging.linode.unep-wcmc.org/system/comfy/cms/files/files/000/000/029/original/Figure15.jpg" height="400cm"&gt;
@@ -53,15 +53,27 @@ class: inverse
 class: inverse
 # Constraints
 * what must the solution do?
+
+&lt;div align = "center"&gt;
+&lt;img src="https://prioritizr.github.io/prioritizr/readme-figure/unnamed-chunk-10-1.png" height="400cm"&gt;
+&lt;/div&gt;
+
+???
   * capture a target amount of habitat for each species?
   * be spatially contiguous?
   * contain areas that are already protected?
+  * not contain isolated planning units?
 
 ---
 class: inverse
 # Penalties
 * are there additional properties that must be traded off against the objective?
   * reduce fragmentation (eg. _BLM_ in Marxan)
+
+&lt;div align = "center"&gt;
+&lt;img
+src="http://marxan.net/downloads/uq_marxan_web_2/module2_map1.JPG" height="350cm"&lt;/div&gt;
+&lt;/div&gt;
 
 ---
 class: inverse
@@ -222,10 +234,11 @@ class: inverse
 
 ```r
 # create problem
-p1 &lt;- problem(sim_pu_polygons, features = sim_features, cost_name = "cost") %&gt;%
-  add_min_set_objective() %&gt;%
-  add_relative_targets(0.2) %&gt;%
-  add_binary_decisions()
+p1 &lt;- problem(sim_pu_polygons, features = sim_features,
+             cost_name = "cost") %&gt;%
+      add_min_set_objective() %&gt;%
+      add_relative_targets(0.2) %&gt;%
+      add_binary_decisions()
 # print object
 print(p1)
 ```
@@ -372,7 +385,7 @@ class: inverse
   * https://prioritizr.github.io/prioritizr/
 * Teaching resources
   * https://github.com/prioritizr/teaching
-* Post an issue
+* GitHub repository
   * https://github.com/prioritizr/prioritizr
 * Spatial analysis in R
   * http://www.springer.com/gp/book/9781461476177
@@ -384,9 +397,9 @@ class: inverse
 |  |  |  |  |
 | :---: | :---: | :---: | :---: |
 | Jeffrey Hanson | &lt;img src="https://avatars3.githubusercontent.com/u/3610005?v=3&amp;s=460" height="120cm"&gt; | Richard Schuster | &lt;img src="https://carleton.ca/biology/wp-content/uploads/schuster-200x200.jpg" height="120cm"&gt; |
-| Matt Mackey-Strimas  | &lt;img src="http://strimas.com/img/avatar.png" height="120cm"&gt; | Matt Watts | &lt;img src="http://marxan.net/downloads/uq_marxan_web_2/Matt_Watts_photo.jpg" height="120cm"&gt; |
-| Peter Arcese | &lt;img src="https://forestry-profiles.sites.olt.ubc.ca/files/2013/07/cropped-Peter-Arcese.jpg" height="120cm"&gt; | Joe Bennett | &lt;img src="https://carleton.ca/biology/wp-content/uploads/joe-bennett-head-shot1.jpg" height="120cm"&gt; |
-| Hugh Possingham | &lt;img src="https://www.smp.uq.edu.au/sites/smp.uq.edu.au/files/5108-007%20low%20res.jpg" height="120cm"&gt; |
+| Matt Mackey-Strimas  | &lt;img src="http://strimas.com/img/avatar.png" height="120cm"&gt; | Nina Morell  | &lt;img src="http://peter-arcese-lab.sites.olt.ubc.ca/files/2010/09/Nina_morrell-e1473727277398.jpg" height="120cm"&gt; |
+| Matt Watts | &lt;img src="http://marxan.net/downloads/uq_marxan_web_2/Matt_Watts_photo.jpg" height="120cm"&gt; | Peter Arcese | &lt;img src="https://forestry-profiles.sites.olt.ubc.ca/files/2013/07/cropped-Peter-Arcese.jpg" height="120cm"&gt; |
+| Joe Bennett | &lt;img src="https://carleton.ca/biology/wp-content/uploads/joe-bennett-head-shot1.jpg" height="120cm"&gt; | Hugh Possingham | &lt;img src="https://www.smp.uq.edu.au/sites/smp.uq.edu.au/files/5108-007%20low%20res.jpg" height="120cm"&gt; |
 
 ---
 class: center, middle, inverse
