@@ -1,0 +1,172 @@
+---
+title: "Case-study"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  rmarkdown::html_document:
+    toc: false
+    fig_caption: yes
+    keep_md: yes
+fontsize: 11pt
+documentclass: article
+---
+
+```{r, include = FALSE}
+# set wd
+knitr::opts_knit$set(root.dir = normalizePath(".."))
+knitr::opts_chunk$set(dev = "png", dev.args = list(type = "cairo"), dpi = 500)
+```
+
+```{r "setup"}
+# load packages
+library(prioritizr)
+library(prioritizrdata)
+
+# import data
+data(tas_pu, package = "prioritizrdata")
+data(tas_features, package = "prioritizrdata")
+
+# add locked_out field
+tas_pu$locked_out <- tas_pu$cost < quantile(tas_pu$cost, 0.2)[[1]]
+tas_pu$locked_out <- tas_pu$locked_out & (!tas_pu$locked_in)
+
+# set budget
+budget <- ceiling(sum(tas_pu$cost[tas_pu$locked_in]) +
+                  sum(tas_pu$cost[!tas_pu$locked_in]) * 0.1)
+
+print(budget)
+```
+
+```{r "cost data"}
+spplot(tas_pu, "cost", main = NULL, colorkey = TRUE)
+```
+
+```{r "locked in"}
+spplot(tas_pu, "locked_in", col.regions = c("grey90", "#01AE6E"), main = NULL,
+       colorkey = FALSE)
+```
+
+```{r "locked out"}
+spplot(tas_pu, "locked_out", col.regions = c("grey90", "#00195B"), main = NULL,
+       colorkey = FALSE)
+```
+
+```{r "problem_1"}
+# create problem
+p <- problem(tas_pu, tas_features, "cost") %>%
+     add_min_set_objective() %>%
+     add_relative_targets(0.1) %>%
+     add_binary_decisions() %>%
+     add_gurobi_solver(gap = 0)
+
+# solve problem
+s <- solve(p)
+
+# plot solution
+spplot(s, "solution_1", col.regions = c("grey90", "#D81E36"), main = NULL,
+       colorkey = FALSE)
+```
+
+```{r "problem_2"}
+# create problem
+p <- problem(tas_pu, tas_features, "cost") %>%
+     add_min_set_objective() %>%
+     add_relative_targets(0.1) %>%
+     add_locked_in_constraints("locked_in") %>%
+     add_binary_decisions() %>%
+     add_gurobi_solver(gap = 0)
+
+# solve problem
+s <- solve(p)
+
+# plot solution
+spplot(s, "solution_1", col.regions = c("grey90", "#D81E36"), main = NULL,
+       colorkey = FALSE)
+```
+
+```{r "problem_3"}
+# create problem
+p <- problem(tas_pu, tas_features, "cost") %>%
+     add_min_set_objective() %>%
+     add_relative_targets(0.1) %>%
+     add_locked_in_constraints("locked_in") %>%
+     add_locked_out_constraints("locked_out") %>%
+     add_binary_decisions() %>%
+     add_gurobi_solver(gap = 0)
+
+# solve problem
+s <- solve(p)
+
+# plot solution
+spplot(s, "solution_1", col.regions = c("grey90", "#D81E36"), main = NULL,
+       colorkey = FALSE)
+```
+
+```{r "problem_4"}
+# create problem
+p <- problem(tas_pu, tas_features, "cost") %>%
+     add_min_set_objective() %>%
+     add_relative_targets(0.1) %>%
+     add_locked_in_constraints("locked_in") %>%
+     add_locked_out_constraints("locked_out") %>%
+     add_boundary_penalties(1e-2, 0.5) %>%
+     add_binary_decisions() %>%
+     add_gurobi_solver(gap = 0)
+
+# solve problem
+s <- solve(p)
+
+# plot solution
+spplot(s, "solution_1", col.regions = c("grey90", "#D81E36"), main = NULL,
+       colorkey = FALSE)
+```
+
+```{r "problem_5"}
+# create problem
+p <- problem(tas_pu, tas_features, "cost") %>%
+     add_min_set_objective() %>%
+     add_relative_targets(0.1) %>%
+     add_locked_in_constraints("locked_in") %>%
+     add_locked_out_constraints("locked_out") %>%
+     add_proportion_decisions() %>%
+     add_gurobi_solver(gap = 0)
+
+# solve problem
+s <- solve(p)
+
+# plot solution
+spplot(s, "solution_1", main = NULL, colorkey = TRUE)
+```
+
+```{r "problem_6"}
+# create problem
+p <- problem(tas_pu, tas_features, "cost") %>%
+     add_max_utility_objective(budget) %>%
+     add_relative_targets(0.1) %>%
+     add_locked_in_constraints("locked_in") %>%
+     add_locked_out_constraints("locked_out") %>%
+     add_proportion_decisions() %>%
+     add_gurobi_solver(gap = 0)
+
+# solve problem
+s <- solve(p)
+
+# plot solution
+spplot(s, "solution_1", main = NULL, colorkey = TRUE)
+```
+
+```{r "problem_7"}
+# create problem
+p <- problem(tas_pu, tas_features, "cost") %>%
+     add_max_features_objective(budget) %>%
+     add_relative_targets(0.1) %>%
+     add_locked_in_constraints("locked_in") %>%
+     add_locked_out_constraints("locked_out") %>%
+     add_proportion_decisions() %>%
+     add_gurobi_solver(gap = 0)
+
+# solve problem
+s <- solve(p)
+
+# plot solution
+spplot(s, "solution_1", main = NULL, colorkey = TRUE)
+```
